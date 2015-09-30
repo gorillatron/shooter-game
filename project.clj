@@ -23,7 +23,7 @@
                  [hiccup "1.0.5"]
                  [quil "2.2.6"]]
 
-  :main ^:skip-aot shooter.core
+  :main shooter.core
 
   :target-path "target/%s"
 

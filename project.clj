@@ -27,18 +27,4 @@
 
   :target-path "target/%s"
 
-  :profiles {:uberjar {:aot :all}
-             :dev {:plugins [[lein-cljsbuild "1.1.0"]
-                             [lein-npm "0.6.1"]
-                             [lein-figwheel "0.3.9"]]
-                   :dependencies [[reloaded.repl "0.1.0"]]
-                   :source-paths ["dev"]
-                   :cljsbuild {:builds [{:source-paths ["src" "dev"]
-                                         :figwheel true
-                                         :compiler {:output-to "resources/public/js/shooter.jsclient.client.js"
-                                                    :output-dir "resources/public/js/out"
-                                                    :optimizations :none
-                                                    :main "shooter.jsclient.client"
-                                                    :asset-path "/js/out"
-                                                    :recompile-dependents true
-                                                    :source-map true}}]}}})
+  :profiles {:uberjar {:aot :all}})

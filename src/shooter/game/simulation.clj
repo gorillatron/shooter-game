@@ -106,9 +106,16 @@
     (update-in state [:remote-bullets] conj bullet)))
 
 
+(defn- disconnected-game [state event]
+  (-> state
+      (assoc :remote-bullets [])
+      (assoc :remote-players {})))
+
+
 (defn- apply-events [state events]
   (reduce (fn [state event]
     (case (:name event)
+      "disconnected-game"    (disconnected-game state event)
       "remote-bullet-fired"  (remote-bullet-fired state event)
       "remote-player-change" (remote-player-change state event)
       "player-fired-bullet"  (player-fired-bullet state event))) state events))
@@ -122,16 +129,18 @@
           :remote-bullets []
           :controlls #{}} state))
 
-;
-; (defn- send-updates! [channel old-state new-state events]
-;   (let [oplayer (:player old-state)
-;         nplayer (:player new-state)]
-;     (go (doseq []
-;       (if (not= oplayer nplayer)
-;         (put! channel {:update "player-change" :player nplayer}))
-;       (doseq [event events]
-;         (if (= (:name event) "player-fired-bullet")
-;           (put! channel {:update "bullet-fired" :bullet (player-event->bullet (:player old-state) event)})))))))
+
+(def update-channel (chan))
+
+(defn- send-updates! [old-state new-state events]
+ (let [oplayer (:player old-state)
+       nplayer (:player new-state)]
+   (go (doseq []
+     (if (not= oplayer nplayer)
+       (put! update-channel {:update "player-change" :player nplayer}))
+     (doseq [event events]
+       (if (= (:name event) "player-fired-bullet")
+         (put! update-channel {:update "bullet-fired" :bullet (player-event->bullet (:player old-state) event)})))))))
 
 
 (defn- take-hits [state]
@@ -155,8 +164,10 @@
               new-state (take-hits new-state)
               new-state (update-objects new-state)]
           (do
+            (send-updates! @old-state new-state @events)
             (reset! events [])
             (reset! old-state new-state)
             new-state)))
+      :update-channel update-channel
       :add-event (fn [event] (swap! events conj event))
       :controller (fn [mutator] (reset! controlls (mutator @controlls))) }))

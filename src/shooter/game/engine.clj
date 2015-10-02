@@ -4,6 +4,7 @@
             [clojure.core.async :refer [go put! take! chan <! >! timeout]]
             [shooter.game.simulation :refer [create-simulation]]
             [shooter.game.level :refer [block-of-type walls map-size]]
+            [shooter.game.server-connection :as server-connection]
             [shooter.game.levels.level1 :refer [level1]]))
 
 
@@ -14,13 +15,32 @@
                         :d :right
                         :a :left })
 
-(def game-simulation (create-simulation {:player (new Player (str "gorilla" (rand 100)) (rand 100) (rand 100) 10 1 150)
+(def player (new Player (str "gorilla" (rand 100)) (rand 100) (rand 100) 10 1 150))
+
+(def game-simulation (create-simulation {:player player
                                          :map level1 }))
 
 (def map-size-vec (map-size level1))
 (def next-frame (:next-frame game-simulation))
 (def controller (:controller game-simulation))
 (def add-event (:add-event game-simulation))
+(def update-channel (:update-channel game-simulation))
+
+(go (while true
+      (println "message" (<! server-connection/message-channel))))
+
+(defn join-game []
+  (do
+    (if @server-connection/connected
+      (add-event {:name "disconnected-game"}))
+    (server-connection/join-game player)
+    (println "connected")
+    (go (while @server-connection/connected
+          (let [simulation-update (<! update-channel)]
+            (server-connection/send-update simulation-update)))
+        (add-event {:name "disconnected-game"}))))
+
+
 
 
 (defn setup []

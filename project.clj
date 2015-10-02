@@ -12,7 +12,7 @@
                  [org.clojure/core.async "0.1.346.0-17112a-alpha"]
                  [org.clojure/data.json "0.2.6"]
                  [org.omcljs/om "0.9.0"]
-                 [com.stuartsierra/component "0.2.3"]
+                 [com.stuartsierra/component "0.3.0"]
                  [http-kit "2.1.18"]
                  [compojure "1.4.0"]
                  [javax.servlet/servlet-api "2.5"]
@@ -20,11 +20,16 @@
                  [ring/ring-core "1.4.0"]
                  [reloaded.repl "0.1.0"]
                  [com.wagjo/data-cljs "0.1.0-SNAPSHOT"]
+                 [stylefruits/gniazdo "0.4.1"]
                  [hiccup "1.0.5"]
+                 [reloaded.repl "0.2.0"]
                  [quil "2.2.6"]]
 
-  :main shooter.core
+  :main shooter.game.client
 
   :target-path "target/%s"
 
-  :profiles {:uberjar {:aot :all}})
+  :profiles {:uberjar {:aot :all}
+             :dev {:main ^:skip-aot user
+                   :dependencies [[reloaded.repl "0.2.0"]]
+                   :source-paths ["dev"]}})

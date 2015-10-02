@@ -3,8 +3,6 @@
             [shooter.game.collision :refer [rect-intersects-blocks? rect-intersects-boundary? intersects? rect-intersects-rects?]]
             [shooter.game.level :refer [block-of-type walls]]))
 
-(import '(java.util.concurrent Executors))
-
 ; Memoize the function for extracting walls
 ; Improves collision detection performance a lot
 (def wallsm (memoize walls))

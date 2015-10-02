@@ -22,7 +22,7 @@
 (defn join-game [player]
   (do
     (reset! connected true)
-    (reset! socket (ws/connect (str "ws://shooter-server.herokuapp.com/game/join?player-name=" (:name player))
+    (reset! socket (ws/connect (str "ws://shooter-server-eu.herokuapp.com/game/join?player-name=" (:name player))
                                :on-receive on-receive-handler
                                :on-error on-close
                                :on-close on-close))))

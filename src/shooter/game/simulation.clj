@@ -118,7 +118,10 @@
       "disconnected-game"    (disconnected-game state event)
       "remote-bullet-fired"  (remote-bullet-fired state event)
       "remote-player-change" (remote-player-change state event)
-      "player-fired-bullet"  (player-fired-bullet state event))) state events))
+      "player-fired-bullet"  (player-fired-bullet state event)
+                             (do
+                               (println "unhandeled event" event)
+                               state))) state events))
 
 
 (defn- create-initial-state [state]

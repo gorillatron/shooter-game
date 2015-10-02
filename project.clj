@@ -1,4 +1,4 @@
-(defproject shooter "0.1.0-SNAPSHOT"
+(defproject shooter "0.2.0-SNAPSHOT"
 
   :description "FIXME: write description"
 
@@ -25,11 +25,10 @@
                  [reloaded.repl "0.2.0"]
                  [quil "2.2.6"]]
 
-  :main shooter.game.client
+  :main shooter.core
 
   :target-path "target/%s"
 
   :profiles {:uberjar {:aot :all}
-             :dev {:main ^:skip-aot user
-                   :dependencies [[reloaded.repl "0.2.0"]]
+             :dev {:dependencies [[reloaded.repl "0.2.0"]]
                    :source-paths ["dev"]}})

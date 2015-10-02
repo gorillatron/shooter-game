@@ -15,7 +15,7 @@
                         :d :right
                         :a :left })
 
-(def player (new Player (str "gorilla" (rand 100)) (rand 100) (rand 100) 10 1 150))
+(def player (new Player (str "gorilla" (rand 100)) (rand 50) (rand 50) 10 1 150))
 
 (def game-simulation (create-simulation {:player player
                                          :map level1 }))
@@ -27,7 +27,7 @@
 (def update-channel (:update-channel game-simulation))
 
 (go (while true
-      (println "message" (<! server-connection/message-channel))))
+      (add-event (<! server-connection/message-channel))))
 
 (defn join-game []
   (do
@@ -37,8 +37,7 @@
     (println "connected")
     (go (while @server-connection/connected
           (let [simulation-update (<! update-channel)]
-            (server-connection/send-update simulation-update)))
-        (add-event {:name "disconnected-game"}))))
+            (server-connection/send-update simulation-update))))))
 
 
 

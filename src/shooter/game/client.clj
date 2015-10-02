@@ -14,5 +14,6 @@
                  :size engine/map-size-vec
                  :mouse-clicked engine/on-mouse-clicked
                  :key-pressed engine/on-key-down
-                 :key-released engine/on-key-up)
+                 :key-released engine/on-key-up
+                 :features [:exit-on-close])
     (engine/join-game)))

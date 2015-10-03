@@ -32,8 +32,9 @@
   (do
     (if @server-connection/connected
       (add-event {:name "disconnected-game"}))
+    (println "Establishing server connection")
     @(server-connection/join-game player)
-    (println "connected to server")
+    (println "Connected to server")
     (go (while @server-connection/connected
           (add-event (<! server-connection/message-channel))))
     (go (while @server-connection/connected

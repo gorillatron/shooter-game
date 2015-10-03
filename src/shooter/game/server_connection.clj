@@ -21,6 +21,7 @@
     #(reset! session nil)
     (println "on-close" args)))
 
+
 (defn join-game [player]
   (let [-promise (promise)]
        (reset! socket (ws/connect (str "ws://shooter-server-eu.herokuapp.com/game/join?player-name=" (:name player))
@@ -32,6 +33,7 @@
                                                 (reset! session %1)
                                                 (deliver -promise %1))))
       -promise))
+
 
 (defn send-update [update]
   (ws/send-msg @socket (write-str update)))

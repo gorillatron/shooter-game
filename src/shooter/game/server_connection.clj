@@ -7,6 +7,7 @@
 
 (def connected (atom false))
 (def socket (atom nil))
+(def session (atom nil))
 (def message-channel (chan))
 
 (defn on-receive-handler [message]
@@ -17,15 +18,20 @@
 (defn on-close [& args]
   (do
     #(reset! connected false)
+    #(reset! session nil)
     (println "on-close" args)))
 
 (defn join-game [player]
-  (do
-    (reset! connected true)
-    (reset! socket (ws/connect (str "ws://shooter-server-eu.herokuapp.com/game/join?player-name=" (:name player))
-                               :on-receive on-receive-handler
-                               :on-error on-close
-                               :on-close on-close))))
+  (let [-promise (promise)]
+       (reset! socket (ws/connect (str "ws://shooter-server-eu.herokuapp.com/game/join?player-name=" (:name player))
+                                  :on-receive on-receive-handler
+                                  :on-error on-close
+                                  :on-close on-close
+                                  :on-connect #(do
+                                                (reset! connected true)
+                                                (reset! session %1)
+                                                (deliver -promise %1))))
+      -promise))
 
 (defn send-update [update]
   (ws/send-msg @socket (write-str update)))

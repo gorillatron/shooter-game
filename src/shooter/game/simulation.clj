@@ -1,5 +1,5 @@
 (ns shooter.game.simulation
-  (:require [clojure.core.async :refer [go put! take! chan <! >! timeout]]
+  (:require [clojure.core.async :refer [go go-loop put! take! chan <! >! timeout]]
             [shooter.game.collision :refer [rect-intersects-blocks? rect-intersects-boundary? intersects? rect-intersects-rects?]]
             [shooter.game.level :refer [block-of-type walls]]))
 
@@ -45,17 +45,17 @@
            (rect-intersects-boundary? bullet (:map state)))))
 
 
-(defn- update-bullets-conc [state path]
-  (let [bullet-refs (map ref (state path))
-        pool (Executors/newFixedThreadPool 8)
-        tasks (map (fn [br]
-          (fn []
-            (dosync
-              (alter br update-bullet-location)))) bullet-refs)]
-    (doseq [future (.invokeAll pool tasks)]
-      (.get future))
-    (.shutdown pool)
-    (filterv (partial bullet-intersects? state) (map deref bullet-refs))))
+; (defn- update-bullets-conc [state path]
+;   (let [bullet-refs (map ref (state path))
+;         pool (Executors/newFixedThreadPool 8)
+;         tasks (map (fn [br]
+;           (fn []
+;             (dosync
+;               (alter br update-bullet-location)))) bullet-refs)]
+;     (doseq [future (.invokeAll pool tasks)]
+;       (.get future))
+;     (.shutdown pool)
+;     (filterv (partial bullet-intersects? state) (map deref bullet-refs))))
 
 
 (defn update-bullets [state path]
@@ -157,18 +157,21 @@
   (let [initial-state    (create-initial-state state)
         old-state        (atom initial-state)
         controlls        (atom #{})
-        events           (atom [])]
-
-    {:next-frame (fn []
-        (let [new-state (apply-events @old-state @events)
-              new-state (apply-controlls new-state @controlls)
-              new-state (take-hits new-state)
-              new-state (update-objects new-state)]
-          (do
-            (send-updates! @old-state new-state @events)
-            (reset! events [])
-            (reset! old-state new-state)
-            new-state)))
+        events           (atom [])
+        frame-channel    (chan)]
+    (go-loop []
+      (let [new-state (apply-events @old-state @events)
+            new-state (apply-controlls new-state @controlls)
+            new-state (take-hits new-state)
+            new-state (update-objects new-state)]
+        (do
+          (send-updates! @old-state new-state @events)
+          (reset! events [])
+          (reset! old-state new-state)
+          (>! frame-channel new-state)))
+          (recur))
+    {
+      :frame-channel frame-channel
       :update-channel update-channel
       :add-event (fn [event] (swap! events conj event))
       :controller (fn [mutator] (reset! controlls (mutator @controlls))) }))

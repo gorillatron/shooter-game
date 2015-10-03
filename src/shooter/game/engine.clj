@@ -1,7 +1,7 @@
 (ns shooter.game.engine
   (:require [quil.core :as q]
             [quil.middleware :as m]
-            [clojure.core.async :refer [go put! take! chan <! >! timeout]]
+            [clojure.core.async :refer [go go-loop put! take! chan <! <!! >! timeout]]
             [shooter.game.simulation :refer [create-simulation]]
             [shooter.game.level :refer [block-of-type walls map-size]]
             [shooter.game.server-connection :as server-connection]
@@ -24,22 +24,21 @@
 (def next-frame (:next-frame game-simulation))
 (def controller (:controller game-simulation))
 (def add-event (:add-event game-simulation))
+(def frame-channel (:frame-channel game-simulation))
 (def update-channel (:update-channel game-simulation))
 
-(go (while true
-      (add-event (<! server-connection/message-channel))))
 
 (defn join-game []
   (do
     (if @server-connection/connected
       (add-event {:name "disconnected-game"}))
-    (server-connection/join-game player)
-    (println "connected")
+    @(server-connection/join-game player)
+    (println "connected to server")
+    (go (while @server-connection/connected
+          (add-event (<! server-connection/message-channel))))
     (go (while @server-connection/connected
           (let [simulation-update (<! update-channel)]
             (server-connection/send-update simulation-update))))))
-
-
 
 
 (defn setup []
@@ -48,7 +47,7 @@
 
 
 (defn draw []
-  (let [state (next-frame)
+  (let [state (<!! frame-channel)
         player (:player state)
         bullets (:bullets state)
         remote-players (vals (:remote-players state))
@@ -100,8 +99,6 @@
           (let [{bx :x by :y size :size} bullet]
             (q/rect bx by size size)))
         ))
-
-    ; (println (count (:hits-taken state)))
 
 ))
 
